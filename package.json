@@ -1,5 +1,6 @@
 {
   "name": "ecwid_data_downloader",
+  "type": "module",
   "version": "1.0.0",
   "description": "A simple node.js script to download data from Ecwid stores",
   "main": "data_downloader.js",
