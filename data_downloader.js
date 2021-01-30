@@ -1,8 +1,8 @@
 'use strict';
 
-const fs = require('fs');
-const fetch = require('node-fetch');
-const prompt = require('prompt-sync')();
+import * as fs from 'fs';
+import fetch from 'node-fetch';
+import promptSync from 'prompt-sync';
 
 const REQ_DELAY_MS = 1000;
 const BATCH_DELAY_MS = 4000;
@@ -10,7 +10,7 @@ const BATCH_TIME_LIMIT_MS = 300000;
 const API = 'https://app.ecwid.com/api/v3/';
 const STORE_ID = process.env.ECWID_STORE_ID;
 const ACCESS_TOKEN = process.env.ECWID_ACCESS_TOKEN;
-const REQUESTED_DATA = prompt("Enter an ecwid api method: ");
+const REQUESTED_DATA = promptSync()("Enter an ecwid api method: ");
 
 main();
 
@@ -65,7 +65,7 @@ function delay(ms) {
 
 async function logTime(message) {
     const start = Date.now();
-    return func => {
+    return async func => {
         const result = await func();
         console.log(`${message} time: ${Date.now() - start / 60000} minutes`);
         return result;
