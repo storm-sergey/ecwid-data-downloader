@@ -17,7 +17,8 @@ main();
 async function main() {
     console.log(`The amount of requested data is ${await reqTotal()} items.
     Downloading... Please wait.`);
-    saveDataToFile(await logTime(reqEcwidData));
+    const data = await logTime('Downloading data')(reqEcwidData); // The closure scope and chainig is just for showing
+    saveDataToFile(data);
 }
 
 async function reqTotal() {
@@ -62,18 +63,13 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function saveDataToFile(num = '') {
-    const _fileName = `${REQUESTED_DATA}${num}.json`;
-    const success_report = `The ${REQUESTED_DATA} have saved to the ${_fileName} file!`;
-    fs.writeFile(_fileName, data, err => console.log(err ? err : success_report));
-}
-
-async function logTime(func) {
+async function logTime(message) {
     const start = Date.now();
-    const result = await func();
-    const end = Date.now() - start;
-    console.log(`Total downloading time: ${end / 60000} minutes`);
-    return result;
+    return func => {
+        const result = await func();
+        console.log(`${message} time: ${Date.now() - start / 60000} minutes`);
+        return result;
+    };
 }
 
 async function reqEcwidData() {
@@ -147,4 +143,10 @@ function checkTimeLimit(start) {
 
 async function reqBatchRes(ticket) {
     return await req("GET", "batch", "ticket=" + ticket);
+}
+
+function saveDataToFile(data, num = '') {
+    const _fileName = `${REQUESTED_DATA}${num}.json`;
+    const success_report = `The ${REQUESTED_DATA} have saved to the ${_fileName} file!`;
+    fs.writeFile(_fileName, data, err => console.log(err ? err : success_report));
 }
