@@ -15,12 +15,12 @@ const REQUESTED_DATA = prompt("Enter an ecwid api method: ");
 main();
 
 async function main() {
-    console.log(`The amount of requested data is ${await getTotal()} items.
-        Downloading... Please wait.`);
-    saveLikeAFile(await funcWithTimeLog(getEcwidData));
+    console.log(`The amount of requested data is ${await reqTotal()} items.
+    Downloading... Please wait.`);
+    saveDataToFile(await logTime(reqEcwidData));
 }
 
-async function getTotal() {
+async function reqTotal() {
     return await req("GET", REQUESTED_DATA, "limit=1").then(res => res.total);
 }
 
@@ -62,18 +62,13 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function saveLikeAFile(data, num = '') {
-    const _fileName = REQUESTED_DATA + num + ".json";
-    fs.writeFile(_fileName,
-        data,
-        err => {
-            if (err) return console.log(err);
-            console.log(`The ${REQUESTED_DATA} saved to the '${_fileName}' file!`);
-        }
-    );
+function saveDataToFile(num = '') {
+    const _fileName = `${REQUESTED_DATA}${num}.json`;
+    const success_report = `The ${REQUESTED_DATA} have saved to the ${_fileName} file!`;
+    fs.writeFile(_fileName, data, err => console.log(err ? err : success_report));
 }
 
-async function funcWithTimeLog(func) {
+async function logTime(func) {
     const start = Date.now();
     const result = await func();
     const end = Date.now() - start;
@@ -81,27 +76,27 @@ async function funcWithTimeLog(func) {
     return result;
 }
 
-async function getEcwidData() {
+async function reqEcwidData() {
     const ecwidData = [];
     const offset = await getOffset();
 
     while (offset.num >= 0) {
         let batchReqBody = await getBatchReqBody(offset);
-        let ticket = await getTicket(batchReqBody);
-        ecwidData.push(await getDataBatch(ticket));
+        let ticket = await reqTicket(batchReqBody);
+        ecwidData.push(await reqDataBatch(ticket));
     }
     return JSON.stringify(ecwidData);
 }
 
 async function getOffset() {
     return {
-        num: Math.ceil(await getTotal() / 100) * 100
+        num: Math.ceil(await reqTotal() / 100) * 100
     };
 }
 
 async function getBatchReqBody(offset) {
-    const leftoverItems = await getLeftoverThousands(offset);
     const jsonBatchReq = [];
+    const leftoverItems = await getLeftoverThousands(offset);
 
     while (offset.num >= leftoverItems) {
         jsonBatchReq.push(await getJsonReqBody(offset));
@@ -112,7 +107,7 @@ async function getBatchReqBody(offset) {
 
 async function getLeftoverThousands(offset) {
     return await getOnlyThousands(offset.num)
-        .then(leftoverThousands => leftoverThousands < 0 ? 0 : leftoverThousands);
+        .then(leftoverThousands => (leftoverThousands < 0) ? 0 : leftoverThousands);
 }
 
 async function getOnlyThousands(num) {
@@ -128,18 +123,18 @@ async function getJsonReqBody(offset) {
     };
 }
 
-async function getTicket(body) {
+async function reqTicket(body) {
     return await req("POST", "batch", undefined, body).then(res => res.ticket);
 }
 
-async function getDataBatch(ticket) {
-    let batchRes = await getBatchRes(ticket);
+async function reqDataBatch(ticket) {
+    let batchRes = await reqBatchRes(ticket);
     let start = Date.now();
 
     while (batchRes.status != "COMPLETED") {
-        checkTimeLimit(start)
+        checkTimeLimit(start);
         await delay(BATCH_DELAY_MS);
-        batchRes = await getBatchRes(ticket);
+        batchRes = await reqBatchRes(ticket);
     }
     return batchRes;
 }
@@ -147,9 +142,9 @@ async function getDataBatch(ticket) {
 function checkTimeLimit(start) {
     if (Date.now() > (start + BATCH_TIME_LIMIT_MS)) {
         throw new Error("waiting time exceeded");
-    }
+    };
 }
 
-async function getBatchRes(ticket) {
+async function reqBatchRes(ticket) {
     return await req("GET", "batch", "ticket=" + ticket);
 }
