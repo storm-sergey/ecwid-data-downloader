@@ -25,24 +25,32 @@ async function getTotal() {
 }
 
 async function req(method, apiMeth, params = undefined, body = undefined) {
-    const url = API + STORE_ID + '/'
-        + apiMeth + '?'
-        + (params ? params + '&' : '')
-        + "token=" + ACCESS_TOKEN;
-
-    const res = await fetch(url, {
-        method,
-        cache: "no-cache",
-        headers: await getHeaders(),
-        referrerPolicy: "no-referrer",
-        body,
-    });
-
     await delay(REQ_DELAY_MS);
-    return res.json();
+    const url = await getUrl(apiMeth, params);
+    const options = await getOptions(method, body);
+    return await fetch(url, options)
+        .then(res => res.json())
+        .catch(err => console.log(err));
 }
 
-function getHeaders() {
+async function getUrl(apiMeth, params) {
+    return `${API}${STORE_ID}/${apiMeth}?`
+        + (params ? `${params}&` : '')
+        + `token=${ACCESS_TOKEN}`;
+}
+
+async function getOptions(method, body) {
+    const headers = await getHeaders();
+    return {
+        method,
+        cache: "no-cache",
+        headers,
+        referrerPolicy: "no-referrer",
+        body,
+    };
+}
+
+async function getHeaders() {
     return {
         "Content-Type": "application/json; charset=utf-8",
         "Cache-Control": "no-cache",
@@ -50,7 +58,7 @@ function getHeaders() {
     };
 }
 
-async function delay(ms) {
+function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -69,7 +77,6 @@ async function funcWithTimeLog(func) {
     const start = Date.now();
     const result = await func();
     const end = Date.now() - start;
-
     console.log(`Total downloading time: ${end / 60000} minutes`);
     return result;
 }
@@ -83,7 +90,6 @@ async function getEcwidData() {
         let ticket = await getTicket(batchReqBody);
         ecwidData.push(await getDataBatch(ticket));
     }
-
     return JSON.stringify(ecwidData);
 }
 
@@ -101,13 +107,12 @@ async function getBatchReqBody(offset) {
         jsonBatchReq.push(await getJsonReqBody(offset));
         offset.num -= 100;
     }
-
     return JSON.stringify(jsonBatchReq);
 }
 
 async function getLeftoverThousands(offset) {
-    const leftoverThousands = getOnlyThousands(offset.num);
-    return leftoverThousands < 0 ? 0 : leftoverThousands;
+    return await getOnlyThousands(offset.num)
+        .then(leftoverThousands => leftoverThousands < 0 ? 0 : leftoverThousands);
 }
 
 async function getOnlyThousands(num) {
@@ -136,7 +141,6 @@ async function getDataBatch(ticket) {
         await delay(BATCH_DELAY_MS);
         batchRes = await getBatchRes(ticket);
     }
-
     return batchRes;
 }
 
