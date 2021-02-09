@@ -1,0 +1,29 @@
+{
+  "name": "ecwid_data_downloader",
+  "version": "1.0.0",
+  "description": "A simple node.js script to download data from Ecwid stores",
+  "main": "data_downloader.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/storm-sergey/ecwid_data_downloader.git"
+  },
+  "keywords": [
+    "ecwid",
+    "api",
+    "download"
+  ],
+  "author": "storm-sergey",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/storm-sergey/ecwid_data_downloader/issues"
+  },
+  "homepage": "https://github.com/storm-sergey/ecwid_data_downloader#readme",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "node-fetch": "^2.6.1",
+    "prompt-sync": "^4.2.0"
+  }
+}
